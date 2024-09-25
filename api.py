@@ -24,41 +24,41 @@ def get_tasks():
 
 @app.route('/tasks/<int:task_id>', methods=['GET'])
 def get_task(task_id):
-    task = [task for task in tasks if task['id'] == task_id]
+    task = next((task for task in tasks if task['id'] == task_id))
     if len(task) == 0:
         return jsonify({"error": "Task not found"}), 404
     return jsonify(task)
 
 ##POST
 
-app.route('/tasks', methods=['POST'])
+@app.route('/tasks', methods=['POST'])
 def create_task():
     if not request.json or 'name' not in request.json:
         return jsonify({"error": "Task not found"}), 404
-    new_task={
-        "id":data[-1]['id']+1 if tasks else 1,
+    new_task = {
+        "id": tasks[-1]['id'] + 1 if tasks else 1,
         "name": request.json['name'],
-        "description":request.json["description"]
+        "description": request.json.get("description", "")
     }
     tasks.append(new_task)
-    return jsonify(new_task)
-
+    return jsonify(new_task), 201
 
 ## PUT
 @app.route('/tasks/<int:task_id>',methods=['PUT'])
 def updated_task(task_id):
-    task = [task for task in tasks if task['id'] == task_id]
-    if len(task) == 0:
+    task = next((task for task in tasks if task['id'] == task_id), None)
+    if task is None:
         return jsonify({"error": "Task not found"}), 404
     task["name"] = request.json.get("name", task["name"])
-    task["description"] = request.json.get("name", task["description"])
-    
+    task["description"] = request.json.get("description", task["description"])
     return jsonify(task)
+    
 
 
 ##DELETE
 @app.route('/tasks/<int:task_id>',methods=['DELETE'])
 def delete_task(task_id):
+    global tasks
     tasks = [task for task in tasks if task['id'] != task_id]
     return jsonify({"result":"Task deleted successfully"})
         
